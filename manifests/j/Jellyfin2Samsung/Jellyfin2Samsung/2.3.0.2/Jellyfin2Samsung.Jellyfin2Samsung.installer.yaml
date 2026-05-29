@@ -1,0 +1,19 @@
+# Created using wingetcreate 1.12.8.0
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
+
+PackageIdentifier: Jellyfin2Samsung.Jellyfin2Samsung
+PackageVersion: 2.3.0.2
+InstallerType: wix
+ProductCode: '{293491D3-DECE-47E1-B010-35BBAD627345}'
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/download/v2.3.0.2/Jellyfin2Samsung-v2.3.0.2-win-x64.msi
+  InstallerSha256: 77D777792A5CB754C6CCE15337E6C6FF855ACCF93158E88E2E5147A7CBC7C454
+ManifestType: installer
+ManifestVersion: 1.12.0
+
+
+
+
+
+
