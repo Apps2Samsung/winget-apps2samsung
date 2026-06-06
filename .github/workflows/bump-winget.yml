@@ -1,4 +1,4 @@
-name: bump-winget-samsung-jellyfin-installer
+name: bump-winget-apps2samsung
 
 on:
   schedule:
@@ -20,7 +20,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: bump-winget-samsung-jellyfin-installer
+  group: bump-winget-apps2samsung
   cancel-in-progress: false
 
 env:
@@ -54,7 +54,7 @@ jobs:
 
           latest="$(
             gh release view \
-              --repo Jellyfin2Samsung/Samsung-Jellyfin-Installer \
+              --repo Apps2Samsung/Apps2Samsung \
               --json tagName \
               -q ".tagName" |
             sed 's/^v//'
@@ -65,7 +65,7 @@ jobs:
             exit 1
           fi
 
-          manifest_root="manifests/j/Jellyfin2Samsung/Jellyfin2Samsung"
+          manifest_root="manifests/a/Apps2Samsung/Apps2Samsung"
 
           if [ -d "$manifest_root" ]; then
             current="$(
@@ -130,7 +130,7 @@ jobs:
           $ErrorActionPreference = "Stop"
 
           gh release download "$env:VERSION_TAG" `
-            --repo Jellyfin2Samsung/Samsung-Jellyfin-Installer `
+            --repo Apps2Samsung/Apps2Samsung `
             --pattern "*-win-x64.zip" `
             --output win.zip
 
@@ -166,7 +166,7 @@ jobs:
           wix build installer/Product.wxs `
             -arch x64 `
             -ext WixToolset.Util.wixext `
-            -o "Jellyfin2Samsung-v$env:VERSION-win-x64.msi"
+            -o "Apps2Samsung-v$env:VERSION-win-x64.msi"
 
       - name: Compute MSI SHA256
         id: hash
@@ -176,7 +176,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
 
-          $msi = "Jellyfin2Samsung-v$env:VERSION-win-x64.msi"
+          $msi = "Apps2Samsung-v$env:VERSION-win-x64.msi"
 
           if (-not (Test-Path $msi)) {
             throw "MSI not found: $msi"
@@ -195,7 +195,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
 
-          $manifestRoot = "manifests/j/Jellyfin2Samsung/Jellyfin2Samsung"
+          $manifestRoot = "manifests/a/Apps2Samsung/Apps2Samsung"
           $newDir = Join-Path $manifestRoot $env:VERSION
 
           if (-not (Test-Path $manifestRoot)) {
@@ -235,8 +235,8 @@ jobs:
             $content = $content -replace 'PackageVersion:\s*.*', "PackageVersion: $env:VERSION"
 
             $content = $content -replace `
-              'https://github\.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/download/v[^/]+/Jellyfin2Samsung-v[^/]+-win-x64\.msi', `
-              "https://github.com/Jellyfin2Samsung/Samsung-Jellyfin-Installer/releases/download/v$env:VERSION/Jellyfin2Samsung-v$env:VERSION-win-x64.msi"
+              'https://github\.com/Apps2Samsung/Apps2Samsung/releases/download/v[^/]+/Apps2Samsung-v[^/]+-win-x64\.msi', `
+              "https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v$env:VERSION/Apps2Samsung-v$env:VERSION-win-x64.msi"
 
             $content = $content -replace `
               'InstallerSha256:\s*.*', `
@@ -257,7 +257,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
 
-          $newDir = "manifests/j/Jellyfin2Samsung/Jellyfin2Samsung/$env:VERSION"
+          $newDir = "manifests/a/Apps2Samsung/Apps2Samsung/$env:VERSION"
 
           # winget validate exits 1 on any warning (even when the manifest
           # itself is valid). Microsoft's own winget-pkgs CI treats
@@ -288,8 +288,8 @@ jobs:
           $ErrorActionPreference = "Stop"
 
           gh release upload "$env:VERSION_TAG" `
-            "Jellyfin2Samsung-v$env:VERSION-win-x64.msi" `
-            --repo Jellyfin2Samsung/Samsung-Jellyfin-Installer `
+            "Apps2Samsung-v$env:VERSION-win-x64.msi" `
+            --repo Apps2Samsung/Apps2Samsung `
             --clobber
 
       - name: Commit updated local manifests
@@ -325,12 +325,12 @@ jobs:
         if: github.event.inputs.dry_run != 'true'
         uses: vedantmgoyal9/winget-releaser@v2
         with:
-          identifier: Jellyfin2Samsung.Jellyfin2Samsung
+          identifier: Apps2Samsung.Apps2Samsung
           version: ${{ needs.check.outputs.latest }}
           release-tag: v${{ needs.check.outputs.latest }}
-          release-repository: Samsung-Jellyfin-Installer
+          release-repository: Apps2Samsung
           installers-regex: '\.msi$'
-          fork-user: Jellyfin2Samsung
+          fork-user: Apps2Samsung
           token: ${{ secrets.MAIN_REPO_TOKEN }}
 
       - name: Dry run summary
