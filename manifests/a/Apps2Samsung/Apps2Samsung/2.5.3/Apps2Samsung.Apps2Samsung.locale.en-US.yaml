@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json
+
+PackageIdentifier: Apps2Samsung.Apps2Samsung
+PackageVersion: 2.5.3
+PackageLocale: en-US
+Publisher: Apps2Samsung
+PackageName: Apps2Samsung
+License: MIT License
+ShortDescription: Install any app on Samsung Tizen devices — TVs, projectors and smart monitors
+ManifestType: defaultLocale
+ManifestVersion: 1.12.0
+
+
+
+
