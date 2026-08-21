@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
+
+PackageIdentifier: Apps2Samsung.Apps2Samsung
+PackageVersion: 2.7.7
+InstallerType: wix
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/Apps2Samsung/Apps2Samsung/releases/download/v2.7.7/Apps2Samsung-v2.7.7-win-x64.msi
+  InstallerSha256: E4C8083516F67DD61ADE1E37F6366A1BA136624486CC810D754F909978E26171
+ManifestType: installer
+ManifestVersion: 1.12.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
