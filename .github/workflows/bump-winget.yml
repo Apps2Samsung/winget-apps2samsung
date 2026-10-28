@@ -131,8 +131,9 @@ jobs:
 
           gh release download "$env:VERSION_TAG" `
             --repo Apps2Samsung/Apps2Samsung `
-            --pattern "*-win-x64.zip" `
+            --pattern "Apps2Samsung-$env:VERSION_TAG-win-x64.zip" `
             --output win.zip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
           Expand-Archive win.zip -DestinationPath publish -Force
 
