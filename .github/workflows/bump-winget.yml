@@ -337,7 +337,11 @@ jobs:
           identifier: Apps2Samsung.Apps2Samsung
           version: ${{ needs.check.outputs.latest }}
           release-tag: v${{ needs.check.outputs.latest }}
-          release-repository: Apps2Samsung
+          # Full owner/repo. winget-releaser v2 was rewritten on 2026-10-07 (#343, "support repos
+          # across owners") and no longer prefixes the owner itself; a bare "Apps2Samsung" made it
+          # fetch repos/Apps2Samsung/releases/... -> 404, which is why 2.8.2, 2.8.3 and 3.0.0 never
+          # reached winget-pkgs.
+          release-repository: Apps2Samsung/Apps2Samsung
           installers-regex: '\.msi$'
           fork-user: Apps2Samsung
           token: ${{ secrets.MAIN_REPO_TOKEN }}
