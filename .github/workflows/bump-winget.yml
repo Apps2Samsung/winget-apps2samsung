@@ -1,6 +1,14 @@
 name: bump-winget-apps2samsung
 
 on:
+  # Fired by Apps2Samsung/Apps2Samsung's Stable Release workflow right after the Windows zip is
+  # on the release, so a new stable lands in WinGet within minutes instead of whenever GitHub
+  # gets round to the cron (scheduled runs are often hours late). Beta never dispatches: only
+  # stable-release.yml sends it, and the check job below only ever looks at the latest
+  # non-prerelease anyway.
+  repository_dispatch:
+    types: [stable-release]
+  # Daily safety net for when the dispatch did not arrive (token expired, step skipped, ...).
   schedule:
     - cron: '0 9 * * *'
   workflow_dispatch:
