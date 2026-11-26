@@ -1,8 +1,8 @@
 name: bump-winget-apps2samsung
 
 on:
-  # Fired by Apps2Samsung/Apps2Samsung's Stable Release workflow right after the Windows zip is
-  # on the release, so a new stable lands in WinGet within minutes instead of whenever GitHub
+  # Fired by Apps2Samsung/Apps2Samsung's Stable Release workflow right after the MSI is on the
+  # release, so a new stable lands in WinGet within minutes instead of whenever GitHub
   # gets round to the cron (scheduled runs are often hours late). Beta never dispatches: only
   # stable-release.yml sends it, and the check job below only ever looks at the latest
   # non-prerelease anyway.
@@ -19,7 +19,7 @@ on:
         default: false
         type: boolean
       dry_run:
-        description: 'Run the full flow but skip MSI upload, manifest commit, and WinGet PR'
+        description: 'Run the full flow but skip the manifest commit and the WinGet PR'
         required: false
         default: false
         type: boolean
@@ -30,11 +30,6 @@ permissions:
 concurrency:
   group: bump-winget-apps2samsung
   cancel-in-progress: false
-
-env:
-  # Must match the committed extension at .wix/extensions/WixToolset.Util.wixext/<X>/wixext<N>/
-  # (wixext6 -> WiX 6.x CLI). Bump intentionally when the committed extension is updated.
-  WIX_VERSION: '6.0.2'
 
 jobs:
   check:
@@ -129,7 +124,11 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Download Windows zip from release
+      # The MSI is built, and signed through SignPath, by the Stable Release workflow of
+      # Apps2Samsung/Apps2Samsung (installer/Product.wxs there) and is on the release before
+      # that workflow dispatches this one. This repo only describes it for WinGet: nothing here
+      # builds or uploads an installer, so the file WinGet hashes is the signed one.
+      - name: Download MSI from release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION_TAG: v${{ needs.check.outputs.latest }}
@@ -139,43 +138,12 @@ jobs:
 
           gh release download "$env:VERSION_TAG" `
             --repo Apps2Samsung/Apps2Samsung `
-            --pattern "Apps2Samsung-$env:VERSION_TAG-win-x64.zip" `
-            --output win.zip
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-          Expand-Archive win.zip -DestinationPath publish -Force
-
-      - name: Cache WiX tool
-        id: wix-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.dotnet/tools
-          key: wix-${{ env.WIX_VERSION }}
-
-      - name: Install WiX
-        if: steps.wix-cache.outputs.cache-hit != 'true'
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          dotnet tool install --global wix --version $env:WIX_VERSION
-
-      - name: Ensure WiX on PATH (cache hit)
-        if: steps.wix-cache.outputs.cache-hit == 'true'
-        shell: pwsh
-        run: |
-          Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.dotnet\tools"
-
-      - name: Build MSI
-        env:
-          VERSION: ${{ needs.check.outputs.latest }}
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-
-          wix build installer/Product.wxs `
-            -arch x64 `
-            -ext WixToolset.Util.wixext `
-            -o "Apps2Samsung-v$env:VERSION-win-x64.msi"
+            --pattern "Apps2Samsung-$env:VERSION_TAG-win-x64.msi" `
+            --clobber
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::Release $env:VERSION_TAG has no Apps2Samsung-$env:VERSION_TAG-win-x64.msi. The Stable Release workflow of Apps2Samsung/Apps2Samsung puts it there."
+            exit 1
+          }
 
       - name: Compute MSI SHA256
         id: hash
@@ -284,23 +252,6 @@ jobs:
             throw "Manifest validation failed (exit $LASTEXITCODE)."
           }
 
-      - name: Upload MSI to release
-        if: github.event.inputs.dry_run != 'true'
-        env:
-          # Cross-repo write: GITHUB_TOKEN is scoped to this repo only,
-          # so uploading an asset to Samsung-Jellyfin-Installer needs the PAT.
-          GH_TOKEN: ${{ secrets.MAIN_REPO_TOKEN }}
-          VERSION_TAG: v${{ needs.check.outputs.latest }}
-          VERSION: ${{ needs.check.outputs.latest }}
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-
-          gh release upload "$env:VERSION_TAG" `
-            "Apps2Samsung-v$env:VERSION-win-x64.msi" `
-            --repo Apps2Samsung/Apps2Samsung `
-            --clobber
-
       - name: Commit updated local manifests
         if: github.event.inputs.dry_run != 'true'
         env:
@@ -356,6 +307,5 @@ jobs:
           Write-Host "Version:        ${{ needs.check.outputs.latest }}"
           Write-Host "MSI SHA256:     ${{ steps.hash.outputs.sha256 }}"
           Write-Host "Skipped steps:"
-          Write-Host "  - Upload MSI to GitHub release"
           Write-Host "  - Commit manifest to main"
           Write-Host "  - Submit PR to microsoft/winget-pkgs"
